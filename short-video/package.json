@@ -1,0 +1,42 @@
+{
+  "name": "vodShortVideoDemo",
+  "version": "1.0.0",
+  "description": "short video demo for VOD",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "export NODE_ENV=production && tsc && node ./dist/index.js > vodShortVideoDemo.out 2>&1 &",
+    "prestart": "mkdir -p ./dist/conf && cp ./src/conf/moduleConfig.json ./dist/conf/",
+    "dev": "export NODE_ENV=dev && nodemon --watch 'src/' -e ts  --exec ts-node 'src/index.ts'"
+  },
+  "author": "vod team",
+  "license": "ISC",
+  "dependencies": {
+    "@types/jsonwebtoken": "^8.3.8",
+    "@types/koa": "^2.11.2",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa-log4": "^2.3.1",
+    "@types/koa-router": "^7.4.0",
+    "@types/log4js": "^2.3.5",
+    "@types/md5": "^2.1.33",
+    "@types/uuid": "^7.0.0",
+    "class-transformer": "^0.2.3",
+    "class-validator": "^0.11.0",
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.11.0",
+    "koa-body": "^4.1.1",
+    "koa-bodyparser": "^4.2.1",
+    "koa-log4": "^2.3.2",
+    "koa-router": "^8.0.8",
+    "log4js": "^6.1.2",
+    "md5": "^2.2.1",
+    "mysql": "^2.18.1",
+    "reflect-metadata": "^0.1.13",
+    "routing-controllers": "^0.8.1-alpha.2",
+    "systemjs": "^6.2.5",
+    "typedi": "^0.8.0",
+    "typeorm": "^0.2.24",
+    "typescript": "^3.7.5",
+    "uuid": "^7.0.2"
+  }
+}
