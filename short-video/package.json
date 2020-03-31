@@ -38,5 +38,9 @@
     "typeorm": "^0.2.24",
     "typescript": "^3.7.5",
     "uuid": "^7.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tencentyun/vod-server-demo.git"
   }
 }
