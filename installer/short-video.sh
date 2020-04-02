@@ -165,8 +165,7 @@ then
     tccli vod CreateProcedureTemplate --Name "$PROCEDURE" --MediaProcessTask '{"CoverBySnapshotTaskSet":[{"Definition":10, "PositionType":"Time", "PositionValue":0}]}' --AiContentReviewTask '{"Definition":'$REVIEW_TEMPLATE'}' > /dev/null
 fi
 
-# 下载短视频 demo 服务端代码
-git clone https://github.com/tencentyun/vod-server-demo.git > /dev/null 2>&1
+# 启动业务后台
 cd ./vod-server-demo/short-video
 
 # 配置运行参数
@@ -186,7 +185,7 @@ cat > ./src/conf/moduleConfig.json << EOF
 }
 EOF
 
-# 安装并启动服务
+# 启动服务
 sudo npm install > /dev/null
 sudo npm start > /dev/null
 
