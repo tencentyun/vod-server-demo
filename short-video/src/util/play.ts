@@ -15,7 +15,7 @@ interface PlayInfo {
  * Key 防盗链的生成方式参考：https://cloud.tencent.com/document/product/266/14047
  */
 export function GetPlayInfo(u: string, expire: number):  PlayInfo{
-    if ( config.urlKey.length == 0 || expire == 0) {
+    if (!config.urlKey || config.urlKey.length == 0 || expire == 0) {
         return  {
             Url: u,
             ExpireTime: ""
