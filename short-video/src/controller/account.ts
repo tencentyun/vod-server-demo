@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { User } from "../entity";
 import { UserService, TokenService, ValidatorService } from "../service";
-import { SigninDTO, LoginDTO, ModifyPasswordDTO } from "../dto";
+import { RegisterDTO, LoginDTO, ModifyPasswordDTO } from "../dto";
 import { logger } from "../util/logger";
 import * as ErrorCode from "../util/errorcode";
 import { Response } from "../util/response";
@@ -31,8 +31,8 @@ export class AccountController {
      * 1. 此处密码使用明文存储和传输，存在密码泄露风险，生产环境建议使用 HTTPS 协议，使用加密或加盐哈希等安全手段规避此问题。
      * 2. 登录状态通过 JSON Web Token 实现，生产环境建议使用 Session 或其他方式进行管理。
      */
-    @Post("/Signin")
-    public async signin(@Body({ validate: false }) dto: SigninDTO) {
+    @Post("/Register")
+    public async register(@Body({ validate: false }) dto: RegisterDTO) {
         let requestId = uuidv4();
         let ctx = new ServiceContext(requestId);
         let userId: string | undefined = "";
@@ -54,9 +54,9 @@ export class AccountController {
                 TokenExpireTime: tokenInfo.ExpireTime
             });
         } catch (error) {
-            logger.error(`[${ctx.RequestId}] signin error:`, error);
-            logger.info(`[${ctx.RequestId}] signin dto:`, dto);
-            logger.error(`[${requestId}] signin fail: ${error.Code}, ${error.Message}`);
+            logger.error(`[${ctx.RequestId}] register error:`, error);
+            logger.info(`[${ctx.RequestId}] register dto:`, dto);
+            logger.error(`[${requestId}] register fail: ${error.Code}, ${error.Message}`);
             return new Response(requestId, error.Code, error.Message, {});
         }
 

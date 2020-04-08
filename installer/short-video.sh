@@ -28,11 +28,11 @@ CheckCmd() {
     echo "$* > /dev/null 2>&1" | bash
     if [ $? -ne 0 ]
     then
-        ErrLog $1" 安装失败"
+        ErrLog $1" 安装失败。"
         exit 1
     fi
 
-    NormalLog $1" 安装成功"
+    NormalLog $1" 安装成功。"
 }
 
 # 检查 apt 程序是否正在运行中（Ubuntu 启动后会自动运行更新程序）
@@ -51,14 +51,14 @@ REGION=$(curl -s http://metadata.tencentyun.com/latest/meta-data/placement/regio
 IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
 
 ################ 腾讯云 API ################
-NormalLog  "开始安装 pip3"
+NormalLog  "开始安装 pip3。"
 sudo apt-get install python3-pip -qq > /dev/null
 CheckCmd pip3 --version
-NormalLog  "开始安装腾讯云 API 工具"
+NormalLog  "开始安装腾讯云 API 工具。"
 sudo pip3 install tccli -qq > /dev/null
 CheckCmd tccli
 
-NormalLog  "开始检查 SECRET_ID/SECRET_KEY 有效性"
+NormalLog  "开始检查 SECRET_ID/SECRET_KEY 有效性。"
 tccli configure set secretId $SECRET_ID
 tccli configure set secretKey $SECRET_KEY
 tccli configure set region $REGION output json
@@ -67,13 +67,13 @@ tccli configure set region $REGION output json
 result=$(tccli vod ApplyUpload --MediaType "mp4" | grep TempCertificate | wc -l)
 if [ $result -eq 0 ]
 then
-    ErrLog "SecretId/SecretKey 无效"
+    ErrLog "SecretId/SecretKey 无效。"
     exit 1
 fi
-NormalLog "参数检查完成"
+NormalLog "参数检查完成。"
 
 ################ MySQL ################
-NormalLog "开始安装 MySQL"
+NormalLog "开始安装 MySQL。"
 #MYSQL_CLIENT_VER=$(apt list 2>&1 | grep "mysql-client-[0-9]" | head -n 1 | awk -F '/' '{print($1);}')
 #MYSQL_SERVER_VER=$(apt list 2>&1 | grep "mysql-server-[0-9]" | head -n 1 | awk -F '/' '{print($1);}')
 # 生成随机 root 密码
@@ -90,7 +90,7 @@ sudo bash -c "echo \"character_set_server=utf8\" >> /etc/mysql/my.cnf"
 sudo bash -c "echo \"init-connect='SET NAMES utf8'\" >> /etc/mysql/my.cnf"
 sudo bash -c "echo \"port=$MYSQL_PORT\" >> /etc/mysql/my.cnf"
 sudo /etc/init.d/mysql restart > /dev/null
-NormalLog "MySQL 服务启动完成"
+NormalLog "MySQL 服务启动完成。"
 
 # 获取 MySQL 非 root 用户和密码
 #MYSQL_USER=$(sudo cat /etc/mysql/debian.cnf | grep ^user | head -n 1| awk '{print($3)}')
@@ -130,10 +130,10 @@ EOF
 
 mysql -hlocalhost -P$MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWD > /dev/null 2>&1 < mysql_init.sql
 rm mysql_init.sql
-NormalLog "MySQL 建表完成"
+NormalLog "MySQL 建表完成。"
 
 ################ Node.js ################
-NormalLog "开始安装 Node.js"
+NormalLog "开始安装 Node.js。"
 
 # 标准安装（可能较慢）
 #curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - > /dev/null 2>&1
@@ -150,7 +150,7 @@ sudo ln -s /usr/share/node-v12.16.1-linux-x64/bin/npm /usr/local/bin/npm
 CheckCmd node --version
 
 ################ Short-Video-Server ################
-NormalLog "开始部署短视频服务"
+NormalLog "开始部署短视频服务。"
 
 # 调用云 API 配置云点播：视频处理任务流（审核、截取封面）
 PROCEDURE_EXIST=$(tccli vod DescribeProcedureTemplates --Names "[\"$PROCEDURE\"]" --Type "Custom"  --filter "TotalCount")
@@ -159,7 +159,7 @@ then
     REVIEW_TEMPLATE=$(tccli vod CreateContentReviewTemplate --Name "short-video" --ReviewWallSwitch "OFF" --PornConfigure '{"ImgReviewInfo":{"Switch":"ON", "LabelSet":["porn", "vulgar"]}}' --PoliticalConfigure '{"ImgReviewInfo":{"Switch":"ON"}}' --filter "Definition")
     if [ -z $REVIEW_TEMPLATE ]
     then
-        WarnLog "创建内容审核模版失败，使用系统预设模版代替"
+        WarnLog "创建内容审核模版失败，使用系统预设模版代替。"
         REVIEW_TEMPLATE=10
     fi
     tccli vod CreateProcedureTemplate --Name "$PROCEDURE" --MediaProcessTask '{"CoverBySnapshotTaskSet":[{"Definition":10, "PositionType":"Time", "PositionValue":0}]}' --AiContentReviewTask '{"Definition":'$REVIEW_TEMPLATE'}' > /dev/null

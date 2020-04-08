@@ -3,7 +3,7 @@ import { Length, MinLength, Matches } from "class-validator";
 import * as ErrorCode from "../util/errorcode";
 
 // 注册接口的 DTO
-export class SigninDTO {
+export class RegisterDTO {
     @Length(1, 20, {
         message: "NickName must be 1 to 20 characters",
         context: {
