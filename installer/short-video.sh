@@ -154,7 +154,7 @@ NormalLog "开始部署短视频服务。"
 
 # 调用云 API 配置云点播：视频处理任务流（审核、截取封面）
 PROCEDURE_EXIST=$(tccli vod DescribeProcedureTemplates --Names "[\"$PROCEDURE\"]" --Type "Custom"  --filter "TotalCount")
-if [ "$PROCEDURE_EXIST" == "1" ]
+if [ "$PROCEDURE_EXIST" != "1" ]
 then
     REVIEW_TEMPLATE=$(tccli vod CreateContentReviewTemplate --Name "short-video" --ReviewWallSwitch "OFF" --PornConfigure '{"ImgReviewInfo":{"Switch":"ON", "LabelSet":["porn", "vulgar"]}}' --PoliticalConfigure '{"ImgReviewInfo":{"Switch":"ON"}}' --filter "Definition")
     if [ -z $REVIEW_TEMPLATE ]
