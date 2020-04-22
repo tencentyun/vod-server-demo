@@ -8,6 +8,7 @@ import { Context as ServiceContext } from "../util/ctx";
 import { ErrorInfo, VodError } from "../util/error";
 import * as ErrorCode from "../util/errorcode";
 import { GetPlayInfo } from "../util/play";
+import { DeleteMedia } from "../util/api";
 
 
 interface VideoListInfo {
@@ -103,11 +104,27 @@ export class VideoService {
     }
 
     // 根据 UserId 批量删除视频
+    // 风险提示：生产环境中，需确保在腾讯云与数据库中视频的一致性。
     public async BatchDeleteByUserId(ctx: ServiceContext,userId: string, ids: string[]) {
         try {
             const videoRepository: Repository<Video> = getManager().getRepository(Video);
-            await videoRepository.createQueryBuilder().delete().where("author = :author", {"author": userId}).andWhere("Id in (:ids)", {ids}).execute();
-            logger.info(`[${ctx.RequestId}] delete video success:`, ids);
+            let tobeDeleted:any[] = await videoRepository.createQueryBuilder().where("author = :author", {"author": userId}).andWhere("Id in (:ids)", {ids}).select(["Id"]).getRawMany();
+
+            if (!tobeDeleted || tobeDeleted.length === 0) {
+                logger.info(`[${ctx.RequestId}] nothing to be deleted, ids:`, ids);
+                return;
+            }
+
+            // 在腾讯云点播中删除
+            let tobeDeletedIds: string[] = [];
+            for (let v of tobeDeleted) {
+                await DeleteMedia(v.Id);
+                tobeDeletedIds.push(v.Id);
+            }
+
+            // 在数据库中删除
+            await videoRepository.createQueryBuilder().delete().where("Id in (:tobeDeletedIds)", {tobeDeletedIds}).execute();
+            logger.info(`[${ctx.RequestId}] delete video success:`, tobeDeletedIds);
             return;
         } catch (error) {
             logger.error(`[${ctx.RequestId}] delete video fail:`, error);
