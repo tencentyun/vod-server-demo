@@ -22,6 +22,7 @@ WarnLog() {
 ErrLog() {
     echo -n `date +"[%Y-%m-%d %H:%M:%S]"`
     echo -e "${RED}错误${NC}："$1
+    exit 1
 }
 
 CheckCmd() {
@@ -29,7 +30,6 @@ CheckCmd() {
     if [ $? -ne 0 ]
     then
         ErrLog $1" 安装失败。"
-        exit 1
     fi
 
     NormalLog $1" 安装成功。"
@@ -40,7 +40,6 @@ result=$(ps -elf | grep apt | grep -v grep | wc -l)
 if [ $result -ne 0 ]
 then
     ErrLog "操作系统 apt 更新程序运行中，请稍后重试。"
-    exit 1
 fi
 
 cd ~
@@ -68,7 +67,6 @@ result=$(tccli vod ApplyUpload --MediaType "mp4" | grep TempCertificate | wc -l)
 if [ $result -eq 0 ]
 then
     ErrLog "SecretId/SecretKey 无效。"
-    exit 1
 fi
 NormalLog "参数检查完成。"
 
@@ -105,10 +103,10 @@ CREATE TABLE \`$MYSQL_DATABASE\`.\`User\` (
   \`password\` varchar(32) NOT NULL COMMENT '用户密码',
   \`create_time\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   \`update_time\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最近更新时间',
-  \`nickname\` varchar(32) NOT NULL COMMENT '昵称',
-  \`sys_avatar_id\` varchar(128) NOT NULL DEFAULT '' COMMENT '系统头像 ID',
-  \`custom_avatar_url\` varchar(1024) NOT NULL DEFAULT '' COMMENT '自定义头像 URL',
-  \`description\` varchar(2048) NOT NULL DEFAULT '' COMMENT '用户简介',
+  \`nickname\` varchar(128) NOT NULL COMMENT '昵称',
+  \`sys_avatar_id\` varchar(32) NOT NULL DEFAULT '' COMMENT '系统头像 ID',
+  \`custom_avatar_url\` varchar(256) NOT NULL DEFAULT '' COMMENT '自定义头像 URL',
+  \`description\` varchar(256) NOT NULL DEFAULT '' COMMENT '用户简介',
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`idx_nickname\` (\`nickname\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户资料';
@@ -117,11 +115,11 @@ CREATE TABLE \`$MYSQL_DATABASE\`.\`Video\` (
   \`id\` varchar(32) NOT NULL COMMENT '视频 ID，即点播 FileId',
   \`title\` varchar(128) NOT NULL DEFAULT '' COMMENT '视频名称',
   \`author\` varchar(36) NOT NULL DEFAULT '' COMMENT '视频上传者 ID',
-  \`cover\` varchar(512) NOT NULL DEFAULT '' COMMENT '视频封面 URL',
-  \`animated_cover\` varchar(512) NOT NULL DEFAULT '' COMMENT '视频动图封面 URL',
+  \`cover\` varchar(256) NOT NULL DEFAULT '' COMMENT '视频封面 URL',
+  \`animated_cover\` varchar(256) NOT NULL DEFAULT '' COMMENT '视频动图封面 URL',
   \`create_time\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  \`status\` varchar(16) NOT NULL DEFAULT '' COMMENT '视频审核状态',
-  \`url\` varchar(512) NOT NULL DEFAULT '' COMMENT '视频 URL',
+  \`status\` varchar(32) NOT NULL DEFAULT '' COMMENT '视频审核状态',
+  \`url\` varchar(256) NOT NULL DEFAULT '' COMMENT '视频 URL',
   PRIMARY KEY (\`id\`),
   KEY \`idx_1\` (\`author\`,\`create_time\`,\`status\`),
   KEY \`idx_2\` (\`create_time\`,\`status\`)

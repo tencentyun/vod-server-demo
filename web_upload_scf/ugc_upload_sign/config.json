@@ -1,0 +1,8 @@
+{
+    "secret_id" : "",
+    "secret_key" : "",
+    "sign_expire_time" : 600,
+    "class_id" : 0,
+    "otp" : 0,
+    "subappid" : 0
+}

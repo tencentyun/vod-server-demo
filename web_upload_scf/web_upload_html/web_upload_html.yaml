@@ -1,0 +1,22 @@
+Resources:
+  vod_demo:
+    Type: TencentCloud::Serverless::Namespace
+    web_upload_html:
+      Type: TencentCloud::Serverless::Function
+      Properties:
+        CodeUri: ./
+        Type: Event
+        Description: 云点播 Web 上传页面 Demo
+        Handler: index.main_handler
+        MemorySize: 128
+        Runtime: Python3.6
+        Timeout: 5
+        Events:
+          ugc_upload_sign_apigw:
+            Type: APIGW
+            Properties:
+              StageName: release
+              ServiceId:
+              HttpMethod: ANY
+              IntegratedResponse: true
+              Enable: true

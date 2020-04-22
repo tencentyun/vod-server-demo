@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>腾讯云 VOD Web 上传示例</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+  <style type="text/css">
+
+    #resultBox {
+      width: 100%;
+      height: auto;
+      min-height: 300px;
+      border: 1px solid #888;
+      padding: 5px;
+      overflow: auto;
+      margin-bottom: 20px;
+    }
+
+    .uploaderMsgBox {
+      width: 100%;
+      border-bottom: 1px solid #888;
+    }
+
+    .uploaderMsgBox:last-of-type {
+      border-bottom: none;
+    }
+
+    .progress_strip {
+      height: 6px;
+      margin-bottom: 24px;
+      min-width: 100px;
+      background-color: #e5e5e5;
+      border-radius: 0;
+      position: relative;
+      border: none;
+    }
+
+    .progress_value {
+      height: 6px;
+      background: #006eff;
+      content: '';
+      display: block;
+      border: none;
+      position: static;
+      transition: width 0.2s ease 0s;
+    }
+
+    .progress_value_hundred {
+      background: #06c290;
+    }
+    
+    .progress_text {
+      display: block;
+      position: absolute;
+      font-size: 12px;
+      line-height: 20px;
+      left: 0;
+      top: 8px;
+    }
+    .demo_btn {
+      height: 30px;
+      min-width: 24px;
+      padding: 0 20px;
+      background-color: #006eff;
+      color: #fff;
+      border: 1px solid #006eff;
+      line-height: 30px;
+      text-align: center;
+      display: inline-block;
+      cursor: pointer;
+      outline: 0 none;
+      box-sizing: border-box;
+      text-decoration: none;
+      font-size: 12px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .demo_btn:hover {
+      border-color: #0063e5;
+      background-color: #0063e5;
+      text-decoration: none;
+      -webkit-transition: all .3s ease-in-out;
+      transition: all .3s ease-in-out;
+    }
+    .demo_btn_weak {
+      background-color: #fff;
+      border-color: #ddd;
+      color: #000;
+    }
+    .demo_btn_weak:focus, .demo_btn_weak:hover {
+      border-color: #ddd;
+      color: #000;
+      background-color: #f2f2f2;
+    }
+    .demo_btn_text {
+      display: inline-block;
+      text-align: center;
+      height: auto;
+      vertical-align: middle;
+      text-decoration: none;
+      line-height: 1.5;
+      background-color: rgba(0,0,0,.05);
+      border: none;
+      padding: 5px;
+      color: #444;
+    }
+    .demo_btn_text:hover {
+      background-color: rgba(0,0,0,.05);
+    }
+    .demo_btn_disabled, .demo_btn_disabled:hover {
+      border-color: #ddd;
+      background-color: #fff;
+      color: #bbb;
+      cursor: not-allowed;
+    }
+    .demo_input {
+      width: 200px;
+      display: inline-block;
+      box-sizing: border-box;
+      vertical-align: middle;
+      height: 30px;
+      padding-left: 10px;
+      padding-right: 10px;
+      font-size: 12px;
+      border: 1px solid #ddd;
+      border-radius: 0;
+      color: #444;
+      -webkit-transition: .2s ease-in-out;
+      transition: .2s ease-in-out;
+      -webkit-transition-property: color,background-color,border;
+      transition-property: color,background-color,border;
+    }
+    .demo_input:hover{
+      border-color: #bbb;
+      outline: 0;
+    }
+    .demo_input:focus {
+      border-color: #006eff;
+      outline: 0;
+    }
+    .demo_checkbox{
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin: 0 !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container" id="main-area">
+
+    <form ref="vcExample">
+      <input type="file" style="display:none;" ref="vcExampleVideo" @change="setVcExampleVideoName()" />
+      <input type="file" style="display:none;" ref="vcExampleCover" @change="setVcExampleCoverName()" />
+    </form>
+    <div class="row" style="padding:10px;">
+      <h4>功能1：视频上传</h4>
+      <button class="demo_btn" @click="vcExampleAddVideo">{{vcExampleVideoName || '选择视频'}}</button>
+      <button class="demo_btn" style="width:120px;" @click="vcExampleAddCover">{{vcExampleCoverName || '选择封面(可选)'}}</button>
+      <input class="demo_input" style="width:110px;" v-model="vcExampleCustomName" placeholder="视频名称(可选)"/>
+      <input class="demo_input" style="width:350px;" v-model="vcExampleSourceContext" placeholder="上传签名的sourceContext字段，会在上传回调中透传(可选)。"/>
+      <button class="demo_btn" :class="{demo_btn_disabled: !vcExampleVideoName}" :disabled="!vcExampleVideoName" @click="vcExampleAddUpload">开始上传</button>
+      <input class="demo_checkbox" v-model="vcExampleResume" id="resumeSwitch" type="checkbox" />
+      <label style="font-size: 12px;" for="resumeSwitch">断点续传(默认开启)</label> 
+    </div>
+
+    <form ref="cExample">
+      <input type="file" style="display:none;" ref="cExampleCover" @change="cExampleUpload" />
+    </form>
+    <div class="row form-group form-group-sm" style="padding:10px;">
+      <h4>功能2：修改封面</h4>
+      <span style="padding: 0;"> </span>
+        <input class="demo_input" v-model="cExampleFileId" placeholder="待修改的媒体 ID(FileId)"/>
+        <button class="demo_btn" @click="cExampleAddCover">选择封面</button>
+    </div>
+    <div class="row" id="resultBox">
+      <!-- 上传信息组件	 -->
+      <div class="uploaderMsgBox" v-for="(uploaderInfo, index) of uploaderInfos">
+        <div v-if="uploaderInfo.videoInfo">
+          <p>
+            视频名称：{{uploaderInfo.sourceName}}；
+            <button class="demo_btn demo_btn_weak" v-if="!uploaderInfo.isVideoUploadSuccess && !uploaderInfo.isVideoUploadCancel" @click="uploaderInfo.cancel()">暂停/取消上传</button>          
+            <button class="demo_btn demo_btn_weak" v-if="!uploaderInfo.isVideoUploadSuccess && uploaderInfo.isVideoUploadCancel" @click="resumeUpload(index)">恢复上传</button>
+          </p>  
+          <div class="progress_strip">
+            <div :class="uploaderInfo.progress === 1 ? 'progress_value_hundred' : ''" class="progress_value" :style="{width: uploaderInfo.progress * 100 + '%'}">
+              <span class="progress_text">上传进度：{{Math.floor(uploaderInfo.progress * 100) + '%'}}；</span>  
+            </div>  
+          </div>  
+          <p>上传状态：{{uploaderInfo.isVideoUploadCancel ? '已取消' : uploaderInfo.isVideoUploadSuccess ? '上传成功' : '上传中'}}；</p>
+          <p v-if="uploaderInfo.isVideoUploadSuccess">fileId：{{uploaderInfo.fileId}}；</p>
+          <p v-if="uploaderInfo.isVideoUploadSuccess && uploaderInfo.videoName">视频名称：{{uploaderInfo.videoName}}</p>
+          <p v-if="uploaderInfo.isVideoUploadSuccess">地址：{{uploaderInfo.videoUrl}}；</p>
+        </div>
+
+        <div v-if="uploaderInfo.coverInfo">
+          封面名称：{{uploaderInfo.coverInfo.name}}；
+          上传进度：{{Math.floor(uploaderInfo.coverProgress * 100) + '%'}}；
+          上传结果：{{uploaderInfo.isCoverUploadSuccess ? '上传成功' : '上传中'}}；
+          <br>
+          <p v-if="uploaderInfo.isCoverUploadSuccess">地址：{{uploaderInfo.coverUrl}}；</p>
+          <br>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.21/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.js"></script>
+  <script src="https://cdn-go.cn/cdn/vod-js-sdk-v6/latest/vod-js-sdk-v6.js"></script>
+
+  <script type="text/javascript">
+      const signUrl = '${UGC_UPLOAD_SIGN_SERVER}';
+    
+    ;(function () {
+
+      var app = new Vue({
+        el: '#main-area',
+        data: {
+          uploaderInfos: [],
+
+          vcExampleVideoName: '',
+          vcExampleCoverName: '',
+          vcExampleCustomName: '',
+          vcExampleSourceContext: '',
+          vcExampleResume: true,
+          cExampleFileId: '',
+        },
+        created: function () {
+          this.tcVod = new TcVod.default({
+            getSignature: this.getSignature.bind(this)
+          })
+        },
+        methods: {
+  
+          getSignature: function() {
+            var params = '';
+            params = {
+              sourceContext: this.vcExampleSourceContext
+            }
+            return axios.post(signUrl, JSON.stringify(params)).then(function (response) {
+              return response.data;
+            })
+          },
+
+          upload: function(opts) {
+            var mediaFile = opts.mediaFile;
+            if (!mediaFile) 
+              throw new Error('require `mediaFile`');
+            var params = {
+              mediaFile: opts.mediaFile,
+            }
+            if (opts.coverFile) {
+              params.coverFile = opts.coverFile;
+            }
+            if (opts.mediaName) {
+              params.mediaName = opts.mediaName;
+            }
+            params.enableResume = this.vcExampleResume;
+            var uploader = this.tcVod.upload(params);
+            return uploader;
+          },
+
+          setVcExampleVideoName: function () {
+            this.vcExampleVideoName = this.$refs.vcExampleVideo.files[0].name;
+          },
+
+          setVcExampleCoverName: function () {
+            this.vcExampleCoverName = this.$refs.vcExampleCover.files[0].name;
+          },
+
+          vcExampleAddVideo: function () {
+            this.$refs.vcExampleVideo.click()
+          },
+
+          vcExampleAddCover: function () {
+            this.$refs.vcExampleCover.click()
+          },
+
+          vcExampleAddUpload: function () {
+            var self = this;
+
+            var mediaFile = this.$refs.vcExampleVideo.files[0];
+            if (!mediaFile) {
+              console.log('require a file');
+              return;
+            }
+            var coverFile = this.$refs.vcExampleCover.files[0];
+            var customVideoName = this.vcExampleCustomName;
+            var opts = {
+              mediaFile: mediaFile,
+              coverFile: coverFile,
+              mediaName: customVideoName
+            }
+            var uploader = this.upload(opts);
+            var uploaderInfo = this.handleUploaderInfo(uploader, opts);
+            self.$refs.vcExample.reset();
+            self.vcExampleVideoName = '';
+            self.vcExampleCoverName = '';
+            self.vcExampleCustomName = '';
+            uploader.done().then(function (doneResult) {
+              console.log('doneResult', doneResult)
+
+              uploaderInfo.fileId = doneResult.fileId;
+
+              uploaderInfo.coverUrl = doneResult.cover && doneResult.cover.url;
+              uploaderInfo.videoUrl = doneResult.video.url;
+              uploaderInfo.videoName = customVideoName;
+            }).catch(err => {
+              console.log(err)
+              self.$refs.vExample.reset()
+            })
+          },
+
+          handleUploaderInfo(uploader, uploadParams, uploaderInfo) {
+            var self = this;
+            var isResume = !!uploaderInfo;
+            if (isResume) {
+              
+              uploaderInfo.videoInfo = uploader.videoInfo;
+              uploaderInfo.coverInfo = uploader.coverInfo;
+              uploaderInfo.cancel = function () {
+                uploaderInfo.isVideoUploadCancel = true,
+                uploader.cancel();
+                self.$refs.vcExample.reset();
+              };
+            }
+            var uploaderInfo = isResume ? uploaderInfo : {
+              sourceName: uploadParams.mediaFile.name,
+              uploadParams: uploadParams,
+              videoInfo: uploader.videoInfo,
+              coverInfo: uploader.coverInfo,
+              isVideoUploadSuccess: false,
+              isVideoUploadCancel: false,
+              isCoverUploadSuccess: false,
+              progress: 0,
+              coverProgress: 0,
+              fileId: '',
+              videoUrl: '',
+              coverUrl: '',
+              cancel: function () {
+                uploaderInfo.isVideoUploadCancel = true;
+                uploader.cancel()
+                self.$refs.vcExample.reset();
+              },
+            };
+
+            uploader.on('media_progress', function(info) {
+              if (isResume && info.percent == 0) return;
+              uploaderInfo.progress = info.percent;
+            })
+            uploader.on('media_upload', function(info) {
+              uploaderInfo.isVideoUploadSuccess = true;
+            })
+            uploader.on('cover_progress', function(info) {
+              uploaderInfo.coverProgress = info.percent;
+            })
+            uploader.on('cover_upload', function(info) {
+              uploaderInfo.isCoverUploadSuccess = true;
+            })
+            console.log(uploader, 'uploader')
+
+            if (!isResume) {
+              this.uploaderInfos.push(uploaderInfo);
+            }
+            return uploaderInfo;
+          },
+          
+          resumeUpload: function(index) {
+            var uploaderInfo = this.uploaderInfos[index];
+            if (!uploaderInfo) return;
+            uploaderInfo.isVideoUploadCancel = false;
+            var params = uploaderInfo.uploadParams;
+            var uploader = this.tcVod.upload(params);
+            uploaderInfo = this.handleUploaderInfo(uploader, params, uploaderInfo);
+
+            console.log(uploader, 'uploader')
+
+            uploader.done().then(function (doneResult) {
+              console.log('doneResult', doneResult)
+
+              uploaderInfo.fileId = doneResult.fileId;
+
+              uploaderInfo.coverUrl = doneResult.cover && doneResult.cover.url;
+              uploaderInfo.videoUrl = doneResult.video.url;
+              self.$refs.vcExample.reset();
+              self.vcExampleVideoName = ''
+              self.vcExampleCoverName = ''
+            }).catch(err => {
+              console.log(err)
+              self.$refs.vcExample.reset()
+            })
+          },
+
+          cExampleAddCover: function() {
+            this.$refs.cExampleCover.click()
+          },
+
+          cExampleUpload: function() {
+            var self = this;
+
+            var coverFile = this.$refs.cExampleCover.files[0];
+
+            var uploader = this.tcVod.upload({
+              fileId: this.cExampleFileId,
+              coverFile: coverFile,
+            })
+            uploader.on('cover_progress', function(info) {
+              uploaderInfo.coverProgress = info.percent;
+            })
+            uploader.on('cover_upload', function(info) {
+              uploaderInfo.isCoverUploadSuccess = true;
+            })
+            console.log(uploader, 'uploader')
+
+            var uploaderInfo = {
+              coverInfo: uploader.coverInfo,
+              isCoverUploadSuccess: false,
+              coverProgress: 0,
+              coverUrl: '',
+              cancel: function () {
+                uploader.cancel()
+              },
+            }
+
+            this.uploaderInfos.push(uploaderInfo)
+
+            uploader.done().then(function (doneResult) {
+              console.log('doneResult', doneResult)
+
+              uploaderInfo.coverUrl = doneResult.cover.url;
+
+              self.$refs.cExample.reset();
+            })
+          },
+        },
+      })
+    })();
+
+  </script>
+
+</body>
+
+</html>
