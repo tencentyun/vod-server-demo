@@ -1,4 +1,4 @@
-import { MinLength, Min, Max, IsOptional, IsArray, ArrayNotEmpty, ValidateNested } from "class-validator";
+import { MinLength, Min, Max, IsOptional, IsArray, ArrayNotEmpty, ValidateNested, Matches } from "class-validator";
 import { Type } from 'class-transformer';
 
 import * as ErrorCode from "../util/errorcode";
@@ -125,12 +125,15 @@ export class DeleteVideoDTO {
 }
 
 class VideoInfo {
-    @MinLength(1, {
-        message: "VideoList.Id can not be empty",
-        context: {
-            errorCode: ErrorCode.ParamValueLegal
+    @Matches(
+        /^[0-9]{1,}$/,
+        {
+            message: "VideoList.Id must be numbers",
+            context: {
+                errorCode: ErrorCode.ParamValueLegal
+            }
         }
-    })
+    )
     Id: string;
 
     constructor(id: string) {

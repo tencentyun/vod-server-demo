@@ -1,5 +1,5 @@
 {
-  "name": "vodShortVideoDemo",
+  "name": "short-video-demo",
   "version": "1.0.0",
   "description": "short video demo for VOD",
   "main": "index.js",
@@ -34,6 +34,7 @@
     "reflect-metadata": "^0.1.13",
     "routing-controllers": "^0.8.1-alpha.2",
     "systemjs": "^6.2.5",
+    "tencentcloud-sdk-nodejs": "^3.0.155",
     "typedi": "^0.8.0",
     "typeorm": "^0.2.24",
     "typescript": "^3.7.5",
