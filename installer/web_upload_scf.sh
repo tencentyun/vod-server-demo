@@ -42,11 +42,8 @@ cd ~
 
 ################ 获取 CVM 信息 ################
 IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
-REGION=$(curl -s http://metadata.tencentyun.com/latest/meta-data/placement/region)
-if [ \( $REGION != "ap-guangzhou" -a $REGION != "ap-beijing" \) -a $REGION != "ap-shanghai" ]
-then
-    REGION="ap-guangzhou"
-fi
+#REGION=$(curl -s http://metadata.tencentyun.com/latest/meta-data/placement/region)
+REGION="ap-guangzhou"
 
 ################ 腾讯云 SCF 工具 ################
 export LC_ALL=C
