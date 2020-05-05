@@ -17,6 +17,6 @@ Resources:
             Properties:
               StageName: release
               ServiceId:
-              HttpMethod: ANY
+              HttpMethod: GET
               IntegratedResponse: true
               Enable: true

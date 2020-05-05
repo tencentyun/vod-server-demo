@@ -30,6 +30,24 @@ def parse_conf_file():
     return conf_json
 
 
+def parse_source_context(event):
+    """从请求 Body 中解析出 sourceContext 字段，
+        用于在上传完成事件通知中透传给回调接收服务"""
+    source_context = ''
+    if 'body' in event:
+        try:
+            req_dict = ast.literal_eval(event['body'])
+            if isinstance(req_dict, dict) and "sourceContext" in req_dict:
+                source_context = req_dict["sourceContext"]
+                if not isinstance(source_context, str):
+                    return ''
+                if len(source_context) > MAX_SOURCE_CONTEXT_LEN:
+                    source_context = source_context[:MAX_SOURCE_CONTEXT_LEN]
+        except SyntaxError:
+            pass
+    return source_context
+
+
 def generate_sign(conf, source_context):
     """生成签名，返回 base64 后的值（bytes 类型）"""
     timestamp = int(time.time())
@@ -63,16 +81,7 @@ def main_handler(event, context):
     del context     # unused
 
     configuration = parse_conf_file()
-
-    # 解析请求 body
-    source_context = ''
-    if 'body' in event and len(event['body']) > 0:
-        req_dict = ast.literal_eval(event['body'])
-        if isinstance(req_dict, dict) and "sourceContext" in req_dict:
-            source_context = req_dict["sourceContext"]
-            if len(source_context) > MAX_SOURCE_CONTEXT_LEN:
-                source_context = source_context[0:MAX_SOURCE_CONTEXT_LEN]
-
+    source_context = parse_source_context(event)
     signature = generate_sign(configuration, source_context)
 
     return {
