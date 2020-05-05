@@ -49,6 +49,7 @@ REGION="ap-guangzhou"
 
 ################ 腾讯云 SCF 工具 ################
 NormalLog  "开始安装 pip3。"
+sudo apt-get update -qq > /dev/null
 sudo apt-get install python3-pip -qq > /dev/null
 CheckCmd pip3 --version
 

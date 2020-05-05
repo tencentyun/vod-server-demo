@@ -43,7 +43,8 @@ then
 fi
 
 cd ~
-export LC_ALL=C
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
 
 ################ 获取 CVM 信息 ################
 REGION=$(curl -s http://metadata.tencentyun.com/latest/meta-data/placement/region)
@@ -51,6 +52,7 @@ IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
 
 ################ 腾讯云 API ################
 NormalLog  "开始安装 pip3。"
+sudo apt-get update -qq > /dev/null
 sudo apt-get install python3-pip -qq > /dev/null
 CheckCmd pip3 --version
 NormalLog  "开始安装腾讯云 API 工具。"
