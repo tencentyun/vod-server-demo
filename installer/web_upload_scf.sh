@@ -38,6 +38,8 @@ then
     ErrLog "操作系统 apt 更新程序运行中，请稍后重试。"
 fi
 
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
 cd ~
 
 ################ 获取 CVM 信息 ################
@@ -46,11 +48,9 @@ IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
 REGION="ap-guangzhou"
 
 ################ 腾讯云 SCF 工具 ################
-export LC_ALL=C
 NormalLog  "开始安装 pip3。"
 sudo apt-get install python3-pip -qq > /dev/null
 CheckCmd pip3 --version
-export LC_ALL=
 
 NormalLog "开始安装腾讯云 SCF 工具。"
 sudo pip3 install scf -qq > /dev/null
@@ -65,8 +65,7 @@ NormalLog "scf 配置完成。"
 
 ################ SCF ################
 NormalLog "开始部署云点播客户端上传签名派发服务。"
-#cd ./vod-server-demo/web_upload_scf
-cd ./web_upload_scf
+cd ./vod-server-demo/web_upload_scf
 
 if [ -z "$SUBAPPID" ]
 then
