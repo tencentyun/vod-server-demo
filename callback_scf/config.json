@@ -1,0 +1,10 @@
+{
+    "secret_id": "",
+    "secret_key": "",
+    "region": "ap-guangzhou",
+    "subappid": 0,
+    "definitions": [
+        100010,
+        100020
+    ]
+}
