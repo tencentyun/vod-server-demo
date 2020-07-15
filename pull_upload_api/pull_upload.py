@@ -39,7 +39,7 @@ def pull_media(conf, url, name=None):
         "MediaUrl": url
     }
     if "subappid" in conf:
-        params["SubAppId"] = conf["subappid"]
+        params["SubAppId"] = int(conf["subappid"])
     if name is not None:
         params["MediaName"] = name
 

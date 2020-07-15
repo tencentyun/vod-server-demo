@@ -43,7 +43,7 @@ def trans_media(conf, fileid):
         }
     }
     if "subappid" in conf:
-        params["SubAppId"] = conf["subappid"]
+        params["SubAppId"] = int(conf["subappid"])
     for definition in conf["definitions"]:
         trans_para = {
             "Definition": definition
