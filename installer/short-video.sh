@@ -121,11 +121,22 @@ CREATE TABLE \`$MYSQL_DATABASE\`.\`Video\` (
   \`animated_cover\` varchar(256) NOT NULL DEFAULT '' COMMENT '视频动图封面 URL',
   \`create_time\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   \`status\` varchar(32) NOT NULL DEFAULT '' COMMENT '视频审核状态',
+  \`wechat_mini_program_status\` varchar(32) NOT NULL DEFAULT '' COMMENT '微信小程序视频审核状态',
   \`url\` varchar(256) NOT NULL DEFAULT '' COMMENT '视频 URL',
+  \`width\` integer NOT NULL DEFAULT 0 COMMENT '视频宽度最大值 单位px',
+  \`height\` integer NOT NULL DEFAULT 0 COMMENT '视频高度最大值 单位px',
   PRIMARY KEY (\`id\`),
   KEY \`idx_1\` (\`author\`,\`create_time\`,\`status\`),
   KEY \`idx_2\` (\`create_time\`,\`status\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='视频资料';
+
+CREATE TABLE \`$MYSQL_DATABASE\`.\`UserAuth\` (
+  \`id\` varchar(36) NOT NULL COMMENT '用户授权 ID，后台生成',
+  \`user_id\` varchar(36) NOT NULL COMMENT '用户 ID',
+  \`type\` varchar(128) NOT NULL COMMENT '授权类型',
+  \`auth_info\` varchar(256) NOT NULL COMMENT '授权信息，比如OpenId',
+  PRIMARY KEY (\`id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户第三方授权信息';
 EOF
 
 mysql -hlocalhost -P$MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWD > /dev/null 2>&1 < mysql_init.sql
@@ -181,7 +192,11 @@ cat > ./src/conf/moduleConfig.json << EOF
     },
     "procedure":"$PROCEDURE",
     "secretId": "$SECRET_ID",
-    "secretKey": "$SECRET_KEY"
+    "secretKey": "$SECRET_KEY",
+	"wxAppConfig": {
+		"appId": "$APP_ID",
+		"appSecret": "$APP_SECRET",
+	}
 }
 EOF
 
