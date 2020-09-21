@@ -1,5 +1,5 @@
 /*
- * 回调接口的 DTO 
+ * 回调接口的 DTO
  * 不作参数校验
  * 具体回调参数结构参考：https://cloud.tencent.com/document/product/266/9636#.E4.BA.8B.E4.BB.B6.E8.AF.B4.E6.98.8E
  */
@@ -17,13 +17,14 @@ export interface CallbackDTO {
     ClipCompleteEvent?: any;
     CreateImageSpriteCompleteEvent?: any;
     SnapshotByTimeOffsetCompleteEvent?: any;
-    WechatMiniProgramPublishEvent?: any;
+    WechatMiniProgramPublishEvent?: WechatMiniProgramPublishEvent;
 }
 
 export interface FileUploadEvent {
-    FileId: string; 
+    FileId: string;
     MediaBasicInfo: MediaBasicInfo;
     ProcedureTaskId: string;
+    MetaData: MediaMetaData;
 }
 
 export interface MediaBasicInfo {
@@ -42,6 +43,20 @@ export interface MediaBasicInfo {
     StorageRegion: string;
     SourceInfo: SourceInfo;
     Vid: string;
+}
+
+export interface MediaMetaData {
+    Size: number;
+    Container: string;
+    Bitrate: number;
+    Width: number;
+    Height: number;
+    Duration: number;
+    Rotate: number;
+    VideoStreamSet: any;
+    AudioStreamSet: any;
+    VideoDuration: number;
+    AudioDuration: number;
 }
 
 interface SourceInfo {
@@ -68,6 +83,16 @@ export interface ProcedureStateChangeEvent {
     TasksNotifyMode: string;
 }
 
+export interface WechatMiniProgramPublishEvent {
+    TaskId: string;
+    Status: string;
+    ErrCode: number;
+    Message: string;
+    FileId: string;
+    SourceDefinition: number;
+    PublishResult: string;
+}
+
 export interface AiContentReviewResultSet {
     Type: string;
     Progress: number;
@@ -91,7 +116,6 @@ export interface PornTask {
     Input: Input;
     Output: Output;
 }
-
 
 export interface TerrorismTask {
     ErrCode: number;

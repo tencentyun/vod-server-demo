@@ -22,9 +22,14 @@ interface ModuleConfig {
 
     /*
     * URL 防盗链 key
-    * 详情参考：https://cloud.tencent.com/document/product/266/14047  
+    * 详情参考：https://cloud.tencent.com/document/product/266/14047
     */
-    readonly urlKey: string; 
+    readonly urlKey: string;
+
+    /*
+    * 微信小程序的ID（appid/appSecret）
+    */
+    readonly wxAppConfig: WXAppConfig
 }
 
 interface DBConfig {
@@ -33,6 +38,11 @@ interface DBConfig {
     readonly username: string;
     readonly password: string;
     readonly database: string;
+}
+
+interface WXAppConfig {
+    readonly appId: string;
+    readonly appSecret: string;
 }
 
 // 初始化配置
@@ -46,10 +56,14 @@ function initConf(): ModuleConfig {
             password: "",
             database: "short-video"
         },
-        procedure:"short-video",
+        procedure: "short-video",
         secretId: "",
         secretKey: "",
-        urlKey: ""
+        urlKey: "",
+        wxAppConfig: {
+            appId: "wx123456",
+            appSecret: "wx123456",
+        }
     };
     try {
         let data: string = fs.readFileSync(

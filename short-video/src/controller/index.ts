@@ -5,3 +5,4 @@ export * from "./upload";
 export * from "./media";
 export * from "./callback";
 export * from "./play";
+export * from "./wxampAccount";

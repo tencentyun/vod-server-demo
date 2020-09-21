@@ -7,7 +7,12 @@
 		"port":"3306",
 		"database":"short-video"
 	},
-    "procedure":"short-video",
-    "secretId": "",
-    "secretKey": ""
+	"procedure":"short-video-demo",
+	"secretId": "",
+	"secretKey": "",
+	"urlKey": "",
+	"wxAppConfig": {
+		"appId": "wx123456",
+		"appSecret": "wx123456"
+	}
 }

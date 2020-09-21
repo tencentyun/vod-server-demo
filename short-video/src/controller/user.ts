@@ -27,8 +27,8 @@ export class UserController {
     /*
      * 修改用户信息
      */
-    @Post('/ModifyUserInfo')
-    public async modifyUserInfo(@Body({validate:false}) dto: ModifyUserInfoDTO) {
+    @Post("/ModifyUserInfo")
+    public async modifyUserInfo(@Body({ validate: false }) dto: ModifyUserInfoDTO) {
         let requestId = uuidv4();
         let ctx = new ServiceContext(requestId);
         try {
@@ -36,20 +36,19 @@ export class UserController {
             await this.validatorService.Validate(ctx, dto);
 
             // 校验 Token
-            let userId = this.tokenService.Verify(ctx, dto.Token);
-            if (!userId) {
+            let tokenData = this.tokenService.Verify(ctx, dto.Token);
+            if (!tokenData) {
                 return new Response(requestId, ErrorCode.TokenInvalid, "Token invalid", {});
             }
+            let userId = tokenData.UserId;
 
             // 更新用户信息
             await this.userService.UpdateInfo(ctx, userId, dto);
-
         } catch (error) {
-            logger.error(`[${ctx.RequestId}] modifyUserInfo error:`, error);
-            logger.info(`[${ctx.RequestId}] modifyUserInfo dto:`, dto);
-            logger.error(`[${requestId}] modify user info fail: ${error.Code}, ${error.Message}`);
+            logger.error(ctx, `modifyUserInfo error:`, error);
+            logger.info(ctx, `modifyUserInfo dto:`, dto);
+            logger.error(ctx, `modify user info fail: ${error.Code}, ${error.Message}`);
             return new Response(requestId, error.Code, error.Message, {});
-
         }
         return new Response(requestId, ErrorCode.OK, "OK", {});
     }
@@ -57,34 +56,34 @@ export class UserController {
     /*
      * 获取用户信息
      */
-    @Post('/GetUserInfo')
-    public async getUserInfo(@Body({validate: false}) dto: GetUserInfoDTO) {
+    @Post("/GetUserInfo")
+    public async getUserInfo(@Body({ validate: false }) dto: GetUserInfoDTO) {
         let requestId = uuidv4();
-        let ctx = new ServiceContext(requestId)
+        let ctx = new ServiceContext(requestId);
         try {
             // 校验接口参数
             await this.validatorService.Validate(ctx, dto);
 
             // 校验 Token
-            let userId = this.tokenService.Verify(ctx, dto.Token);
-            if (!userId) {
+            let tokenData = this.tokenService.Verify(ctx, dto.Token);
+            if (!tokenData) {
                 return new Response(requestId, ErrorCode.TokenInvalid, "Token invalid", {});
             }
+            let userId = tokenData.UserId;
+            let requestSource = tokenData.RequestSource;
 
             // 查找客户信息
             let u = await this.userService.FindById(ctx, userId);
             return new Response(requestId, ErrorCode.OK, "OK", {
                 NickName: u!.NickName,
                 Avatar: u!.Avatar,
-                Description: u!.Description
+                Description: u!.Description,
             });
-
         } catch (error) {
-            logger.error(`[${ctx.RequestId}] getUserInfo error:`, error);
-            logger.info(`[${ctx.RequestId}] getUserInfo dto:`, dto);
-            logger.error(`[${requestId}] get user info fail: ${error.Code}, ${error.Message}`);
+            logger.error(ctx, `getUserInfo error:`, error);
+            logger.info(ctx, `getUserInfo dto:`, dto);
+            logger.error(ctx, `get user info fail: ${error.Code}, ${error.Message}`);
             return new Response(requestId, error.Code, error.Message, {});
         }
     }
-
 }

@@ -47,17 +47,36 @@ export class Video {
     Status?: string;
 
     @Column({
+        name: "wechat_mini_program_status"
+    })
+    WechatMiniProgramStatus?: string;
+
+    @Column({
         name: "url"
     })
     Url: string;
 
-    constructor(id: string, title: string, author: string, cover: string, createTime: Date, url: string) {
+    @Column({
+        name: "width"
+    })
+    Width: number;
+
+    @Column({
+        name: "height"
+    })
+    Height: number;
+
+
+
+    constructor(id: string, title: string, author: string, cover: string, createTime: Date, url: string, width:number, height:number) {
         this.Id = id;
         this.Title = title;
         this.Author = author;
         this.Cover = cover;
         this.CreateTime = createTime;
         this.Url = url;
+        this.Width = width;
+        this.Height = height;
     }
 }
 

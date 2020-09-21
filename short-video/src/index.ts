@@ -1,15 +1,22 @@
 "use strict";
 import "reflect-metadata";
-import Koa from "koa"; 
+import Koa from "koa";
 import koaBodyParser from "koa-bodyparser";
 import { useKoaServer } from "routing-controllers";
-import koaBody from "koa-body"; 
+import koaBody from "koa-body";
 import { createConnection } from "typeorm";
 
 import { logger, accessLogger } from "./util/logger";
 import { moduleConfig as config } from "./conf/config";
-import { AccountController, UserController, UploadController, MediaController, CallbackController, PlayController } from "./controller";
-
+import {
+    AccountController,
+    UserController,
+    UploadController,
+    MediaController,
+    CallbackController,
+    PlayController,
+    WxampAccountController,
+} from "./controller";
 
 // 建立数据库连接
 async function initDB() {
@@ -22,7 +29,7 @@ async function initDB() {
         database: config!.db.database,
         entities: [__dirname + "/entity/*.js"], // 注册实体信息
         logging: true,
-        synchronize: false // 不与数据库同步，否则会自动更新表结构
+        synchronize: false, // 不与数据库同步，否则会自动更新表结构
     });
 }
 
@@ -35,11 +42,13 @@ async function startServer() {
         const App = new Koa();
 
         // body解析
-        App.use(koaBodyParser({
-            extendTypes: {
-                json: ['application/x-www-form-urlencoded'] //对于Content-Type 为 application/x-www-form-urlencoded 默认也当做 JSON 处理
-            }
-        }));
+        App.use(
+            koaBodyParser({
+                extendTypes: {
+                    json: ["application/x-www-form-urlencoded"], //对于Content-Type 为 application/x-www-form-urlencoded 默认也当做 JSON 处理
+                },
+            })
+        );
 
         // 开启访问日志
         App.use(accessLogger);
@@ -51,11 +60,18 @@ async function startServer() {
         let port: number = config!.port;
         useKoaServer(App, {
             // 注册控制器
-            controllers: [AccountController, UserController, UploadController, MediaController, CallbackController, PlayController]
+            controllers: [
+                AccountController,
+                UserController,
+                UploadController,
+                MediaController,
+                CallbackController,
+                PlayController,
+                WxampAccountController,
+            ],
         }).listen(port, () => {
             console.log(`server is running at http://localhost:${port}`);
         });
-
     } catch (error) {
         console.error("start server error: ", error);
     }

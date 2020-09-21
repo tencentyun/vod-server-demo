@@ -8,9 +8,10 @@ import { User } from "../entity";
 import { UserService, TokenService, ValidatorService } from "../service";
 import { RegisterDTO, LoginDTO, ModifyPasswordDTO } from "../dto";
 import { logger } from "../util/logger";
-import * as ErrorCode from "../util/errorcode";
 import { Response } from "../util/response";
 import { Context as ServiceContext } from "../util/ctx";
+import * as Platform from "../util/platform";
+import * as ErrorCode from "../util/errorcode";
 
 // 账号相关的控制器
 @JsonController()
@@ -25,7 +26,7 @@ export class AccountController {
         this.validatorService = Container.get(ValidatorService);
     }
 
-    /* 
+    /*
      * 注册
      * 风险提示：
      * 1. 此处密码使用明文存储和传输，存在密码泄露风险，生产环境建议使用 HTTPS 协议，使用加密或加盐哈希等安全手段规避此问题。
@@ -47,22 +48,21 @@ export class AccountController {
             userId = u!.Id;
 
             // 生成 Token
-            let tokenInfo = this.tokenService.Generate(ctx, <string>userId);
+            let tokenInfo = this.tokenService.Generate(ctx, <string>userId, Platform.DefaultPlatform);
             return new Response(requestId, ErrorCode.OK, "OK", {
                 UserId: userId,
                 Token: tokenInfo.Token,
-                TokenExpireTime: tokenInfo.ExpireTime
+                TokenExpireTime: tokenInfo.ExpireTime,
             });
         } catch (error) {
-            logger.error(`[${ctx.RequestId}] register error:`, error);
-            logger.info(`[${ctx.RequestId}] register dto:`, dto);
-            logger.error(`[${requestId}] register fail: ${error.Code}, ${error.Message}`);
+            logger.error(ctx, `register error:`, error);
+            logger.info(ctx, `register dto:`, dto);
+            logger.error(ctx, `register fail: ${error.Code}, ${error.Message}`);
             return new Response(requestId, error.Code, error.Message, {});
         }
-
     }
 
-    /* 
+    /*
      * 登录
      * 风险提示：
      * 1. 此处密码使用明文传输，存在密码泄露风险，生产环境建议使用 HTTPS 协议，使用加密或加盐哈希等安全手段规避此问题。
@@ -82,25 +82,24 @@ export class AccountController {
             let u = await this.userService.FindByNickName(ctx, dto.NickName);
 
             // 生成 Token
-            let tokenInfo = this.tokenService.Generate(ctx, <string>u!.Id);
+            let tokenInfo = this.tokenService.Generate(ctx, <string>u!.Id, Platform.DefaultPlatform);
             return new Response(requestId, ErrorCode.OK, "OK", {
                 UserId: u!.Id,
                 Token: tokenInfo.Token,
                 TokenExpireTime: tokenInfo.ExpireTime,
                 NickName: u!.NickName,
                 Avatar: u!.Avatar,
-                Description: u!.Description
+                Description: u!.Description,
             });
         } catch (error) {
-            logger.error(`[${ctx.RequestId}] login error:`, error);
-            logger.info(`[${ctx.RequestId}] login dto:`, dto);
-            logger.error(`[${requestId}] login fail: ${error.Code}, ${error.Message}`);
+            logger.error(ctx, `login error:`, error);
+            logger.info(ctx, `login dto:`, dto);
+            logger.error(ctx, `login fail: ${error.Code}, ${error.Message}`);
             return new Response(requestId, error.Code, error.Message, {});
         }
-
     }
 
-    /* 
+    /*
      * 修改密码
      */
     @Post("/ModifyPassword")
@@ -113,30 +112,30 @@ export class AccountController {
             await this.validatorService.Validate(ctx, dto);
 
             // 校验 Token
-            userId = this.tokenService.Verify(ctx, dto.Token);
-            if (!userId) {
+            let tokenData = this.tokenService.Verify(ctx, dto.Token);
+            if (!tokenData) {
                 return new Response(requestId, ErrorCode.TokenInvalid, "Token invalid", {});
             }
+            let userId = tokenData.UserId;
+            let requestSource = tokenData.RequestSource;
 
             // 校验旧密码
             await this.userService.VerifyPasswordByUserId(ctx, userId, dto.OldPassword);
 
             // 更新密码
-            await this.userService.UpdatePasswrod(ctx, userId, dto.NewPassword);
+            await this.userService.UpdatePassword(ctx, userId, dto.NewPassword);
 
             // 生成 Token
-            let tokenInfo = this.tokenService.Generate(ctx, <string>userId);
+            let tokenInfo = this.tokenService.Generate(ctx, <string>userId, Platform.DefaultPlatform);
             return new Response(requestId, ErrorCode.OK, "OK", {
                 Token: tokenInfo.Token,
-                TokenExpireTime: tokenInfo.ExpireTime
+                TokenExpireTime: tokenInfo.ExpireTime,
             });
         } catch (error) {
-            logger.error(`[${ctx.RequestId}] modifyPassword error:`, error);
-            logger.info(`[${ctx.RequestId}] modifyPassword dto:`, dto);
-            logger.error(`[${requestId}] modifyPassword fail: ${error.Code}, ${error.Message}`);
+            logger.error(ctx, `modifyPassword error:`, error);
+            logger.info(ctx, `modifyPassword dto:`, dto);
+            logger.error(ctx, `modifyPassword fail: ${error.Code}, ${error.Message}`);
             return new Response(requestId, error.Code, error.Message, {});
         }
-
     }
-
 }
