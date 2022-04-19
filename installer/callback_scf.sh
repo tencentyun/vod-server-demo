@@ -31,38 +31,29 @@ CheckCmd() {
     NormalLog $1" 安装成功。"
 }
 
-# 检查 apt 程序是否正在运行中（Ubuntu 启动后会自动运行更新程序）
-RESULT=$(ps -elf | grep apt | grep -v grep | wc -l)
-if [ $RESULT -ne 0 ]
-then
-    ErrLog "操作系统 apt 更新程序运行中，请稍后重试。"
-fi
+CheckNpm() {
+    echo "$* > /dev/null 2>&1" | bash
+    if [ $? -ne 0 ]
+    then
+        ErrLog $1" 安装失败。根据不同环境在此url进行安装：https://nodejs.org/zh-cn/download/"
+    fi
 
-export LC_ALL=C.UTF-8
-export LANG=C.UTF-8
+    NormalLog $1" 安装成功。"
+}
+
 cd ~
-
 ################ 获取 CVM 信息 ################
-#IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
+IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
 #REGION=$(curl -s http://metadata.tencentyun.com/latest/meta-data/placement/region)
 REGION="ap-guangzhou"
 
-################ 腾讯云 SCF 工具 ################
-NormalLog  "开始安装 pip3。"
-sudo apt-get update -qq > /dev/null
-sudo apt-get install python3-pip -qq > /dev/null
-CheckCmd pip3 --version
+################ 腾讯云 ServerLess 工具 ################
 
-NormalLog "开始安装腾讯云 SCF 工具。"
-sudo pip3 install scf -qq > /dev/null
-CheckCmd scf --version
-NormalLog "开始配置 scf。"
-scf configure set --region $REGION --appid $APPID --secret-id $SECRET_ID --secret-key $SECRET_KEY
-if [ $? -ne 0 ]
-then
-    ErrLog "scf 配置失败。"
-fi
-NormalLog "scf 配置完成。"
+NormalLog "开始检查npm。"
+CheckNpm npm --version
+NormalLog "开始安装 ServerLess。"
+npm install -g serverless
+CheckCmd serverless -v
 
 ################ SCF ################
 NormalLog "开始部署云点播事件通知接收服务。"
@@ -73,44 +64,22 @@ then
     SUBAPPID="0"
 fi
 
-cat > ./config.json << EOF
+cat > ./.env << EOF
 {
-    "secret_id": "$SECRET_ID",
-    "secret_key": "$SECRET_KEY",
-    "region": "$REGION",
-    "subappid": "$SUBAPPID",
-    "definitions": [
-        100010,
-        100020
-    ]
+TENCENT_APP_ID=$TENCENT_APP_ID
+TENCENT_SECRET_ID=$TENCENT_SECRET_ID
+TENCENT_SECRET_KEY=$TENCENT_SECRET_KEY
+TENCENT_TOKEN=$TENCENT_TOKEN
 }
 EOF
 
-RESULT=$(scf deploy -t ./callback.yaml)
+cd ugc_upload_sign
+sls deploy --debug
+RESULT=$(sls deploy --debug)
 if [ $? -ne 0 ]
 then
     echo "$RESULT" | grep ERROR
     ErrLog "事件通知接收服务部署失败。"
 fi
 #APIGW_SERVICE_ID=$(echo "$RESULT" | grep "serviceId" | sed 's/serviceId.*\(service-.*\)/\1/')
-CALLBACK_SERVICE=$(echo "$RESULT" | grep "subDomain" | sed 's/.*\(http.*\)/\1/')
 NormalLog "云点播事件通知接收服务部署完成。"
-
-# 测试服务
-for i in $(seq 1 10)
-do
-    RESULT=$(curl -s -d '' $CALLBACK_SERVICE)
-    if [ -z "$RESULT" ]
-    then
-        sleep 2
-    else
-        break
-    fi
-done
-
-if [ $i -eq 10 ]
-then
-    WarnLog "事件通知接收服务测试不通过。"
-fi
-
-NormalLog "服务地址：$CALLBACK_SERVICE"

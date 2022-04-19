@@ -20,6 +20,7 @@ import {
 
 // 建立数据库连接
 async function initDB() {
+    console.log("%%%%%%%%%%%%%%%%%%",config)
     return await createConnection({
         type: "mysql",
         host: config!.db.host,
@@ -31,6 +32,17 @@ async function initDB() {
         logging: true,
         synchronize: false, // 不与数据库同步，否则会自动更新表结构
     });
+    // return await createConnection({
+    //     type: "mysql",
+    //     host: "localhost",
+    //     port: 3306,
+    //     username: "root",
+    //     password: "12345678",
+    //     database: "short_video",
+    //     entities: [__dirname + "/entity/*.js"], // 注册实体信息
+    //     logging: true,
+    //     synchronize: false, // 不与数据库同步，否则会自动更新表结构
+    // });
 }
 
 // 启动服务器

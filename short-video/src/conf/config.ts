@@ -53,10 +53,10 @@ function initConf(): ModuleConfig {
             host: "localhost",
             port: 3306,
             username: "root",
-            password: "",
-            database: "short-video"
+            password: '12345678',
+            database: "short_video"
         },
-        procedure: "short-video",
+        procedure: "short_video",
         secretId: "",
         secretKey: "",
         urlKey: "",
@@ -70,6 +70,7 @@ function initConf(): ModuleConfig {
             __dirname + "/moduleConfig.json",
             "utf8"
         );
+        console.log("data is :", __dirname + "/moduleConfig.json")
         if (data !== "") {
             conf = JSON.parse(data);
         }

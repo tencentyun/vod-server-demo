@@ -3,9 +3,9 @@
 	"db": {
 		"host":"localhost",
 		"username":"root",
-		"password":"",
+		"password":"12345678",
 		"port":"3306",
-		"database":"short-video"
+		"database":"short_video"
 	},
 	"procedure":"short-video-demo",
 	"secretId": "",
