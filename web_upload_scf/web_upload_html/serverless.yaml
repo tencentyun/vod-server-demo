@@ -1,0 +1,26 @@
+component: scf
+name: Vod_Web_UploadPage_Demo
+app: Vod_Web_UploadPage_Demo
+inputs:
+  src: ./
+  handler: index.main_handler
+  runtime: Python3.6
+  namespace: default
+  region: ap-guangzhou
+  memorySize: 128
+  timeout: 5
+  events: # 触发器
+    - apigw:
+        parameters:
+          serviceName: serverless
+          environment: release
+          endpoints:
+            - path: /
+              apiName: index
+              method: GET
+              enableCORS: true
+              function:
+                #如返回报错:Invalid scf response. expected scf response valid JSON. 需要将这个配置改成false
+                #是否开启集成响应,参考:https://cloud.tencent.com/document/product/583/12513#.E9.9B.86.E6.88.90.E5.93.8D.E5.BA.94.E4.B8.8E.E9.80.8F.E4.BC.A0.E5.93.8D.E5.BA.94
+                isIntegratedResponse: true
+                functionQualifier: $DEFAULT
