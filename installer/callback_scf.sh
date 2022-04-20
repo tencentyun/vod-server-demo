@@ -64,16 +64,28 @@ then
     SUBAPPID="0"
 fi
 
-cat > ./.env << EOF
+cat > ./config.json << EOF
 {
-TENCENT_APP_ID=$TENCENT_APP_ID
-TENCENT_SECRET_ID=$TENCENT_SECRET_ID
-TENCENT_SECRET_KEY=$TENCENT_SECRET_KEY
-TENCENT_TOKEN=$TENCENT_TOKEN
+    "secret_id": "$SECRET_ID",
+    "secret_key": "$SECRET_KEY",
+    "region": "$REGION",
+    "subappid": "$SUBAPPID",
+    "definitions": [
+        100010,
+        100020
+    ]
 }
 EOF
 
-cd ugc_upload_sign
+cat > ./.env << EOF
+
+
+TENCENT_APP_ID=$APPID
+TENCENT_SECRET_ID=$SECRET_ID
+TENCENT_SECRET_KEY=$SECRET_KEY
+TENCENT_TOKEN=
+EOF
+
 sls deploy --debug
 RESULT=$(sls deploy --debug)
 if [ $? -ne 0 ]
@@ -82,4 +94,23 @@ then
     ErrLog "事件通知接收服务部署失败。"
 fi
 #APIGW_SERVICE_ID=$(echo "$RESULT" | grep "serviceId" | sed 's/serviceId.*\(service-.*\)/\1/')
-NormalLog "云点播事件通知接收服务部署完成。"
+NormalLog "部署云点播事件通知接收服务完成。"
+CALLBACK_SERVICE=$(sls info |grep url |head -n 1 |awk '{print $4}')
+# 测试服务
+for i in $(seq 1 10)
+do
+    RESULT=$(curl -s -d '' $CALLBACK_SERVICE)
+    if [ -z "$RESULT" ]
+    then
+        sleep 2
+    else
+        break
+    fi
+done
+
+if [ $i -eq 10 ]
+then
+    WarnLog "事件通知接收服务测试不通过。"
+fi
+
+NormalLog "服务地址：$CALLBACK_SERVICE"

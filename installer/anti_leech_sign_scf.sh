@@ -64,21 +64,51 @@ then
     SUBAPPID="0"
 fi
 
-cat > ./.env << EOF
+cat > ./config.json << EOF
 {
-TENCENT_APP_ID=$TENCENT_APP_ID
-TENCENT_SECRET_ID=$TENCENT_SECRET_ID
-TENCENT_SECRET_KEY=$TENCENT_SECRET_KEY
-TENCENT_TOKEN=$TENCENT_TOKEN
+    "key" : "$ANTI_LEECH_KEY",
+    "t" : 1800,
+    "exper" : 0,
+    "rlimit" : 0
 }
 EOF
 
-cd ugc_upload_sign
+cat > ./.env << EOF
+
+
+TENCENT_APP_ID=$APPID
+TENCENT_SECRET_ID=$SECRET_ID
+TENCENT_SECRET_KEY=$SECRET_KEY
+TENCENT_TOKEN=
+EOF
+
 sls deploy --debug
 RESULT=$(sls deploy --debug)
 if [ $? -ne 0 ]
 then
     echo "$RESULT" | grep ERROR
-    ErrLog "Key 防盗链签名派发服务部署失败。"
+    ErrLog "防盗链签名派发服务部署失败。"
 fi
-NormalLog "云点播 Key 防盗链签名派发服务部署完成。"
+#APIGW_SERVICE_ID=$(echo "$RESULT" | grep "serviceId" | sed 's/serviceId.*\(service-.*\)/\1/')
+NormalLog "云点播 Key 防盗链签名派发服务部署完成"
+ANTI_LEECH_SIGN_SERVICE=$(sls info |grep url |head -n 1 |awk '{print $4}')
+
+
+# 测试服务
+for i in $(seq 1 10)
+do
+    RESULT=$(curl -s -d '' $ANTI_LEECH_SIGN_SERVICE)
+    if [ -z "$RESULT" ]
+    then
+        sleep 2
+    else
+        break
+    fi
+done
+
+if [ $i -eq 10 ]
+then
+    WarnLog "Key 防盗链签名派发服务测试不通过。"
+fi
+
+NormalLog "服务地址：$ANTI_LEECH_SIGN_SERVICE"

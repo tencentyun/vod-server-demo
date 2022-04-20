@@ -64,13 +64,24 @@ then
     SUBAPPID="0"
 fi
 
-cat > ./ugc_upload_sign/.env << EOF
+cat > ./ugc_upload_sign/config.json << EOF
 {
-TENCENT_APP_ID=$TENCENT_APP_ID
-TENCENT_SECRET_ID=$TENCENT_SECRET_ID
-TENCENT_SECRET_KEY=$TENCENT_SECRET_KEY
-TENCENT_TOKEN=$TENCENT_TOKEN
+    "secret_id" : "$SECRET_ID",
+    "secret_key" : "$SECRET_KEY",
+    "sign_expire_time" : 600,
+    "class_id" : 0,
+    "otp" : 0,
+    "subappid" : "$APPID"
 }
+EOF
+
+cat > ./ugc_upload_sign/.env << EOF
+
+
+TENCENT_APP_ID=$APPID
+TENCENT_SECRET_ID=$SECRET_ID
+TENCENT_SECRET_KEY=$SECRET_KEY
+TENCENT_TOKEN=
 EOF
 
 cd ugc_upload_sign
@@ -83,9 +94,23 @@ then
 fi
 #APIGW_SERVICE_ID=$(echo "$RESULT" | grep "serviceId" | sed 's/serviceId.*\(service-.*\)/\1/')
 NormalLog "云点播客户端上传签名派发服务部署完成。"
+UGC_UPLOAD_SIGN_SERVICE=$(sls info |grep url |head -n 1 |awk '{print $4}')
 
 NormalLog "开始部署云点播 Web 上传页面。"
+cat > ../web_upload_html/config.json << EOF
+{
+    "UGC_UPLOAD_SIGN_SERVER" : "$UGC_UPLOAD_SIGN_SERVICE"
+}
+EOF
 
+cat > ../web_upload_html/.env << EOF
+
+
+TENCENT_APP_ID=$APPID
+TENCENT_SECRET_ID=$SECRET_ID
+TENCENT_SECRET_KEY=$SECRET_KEY
+TENCENT_TOKEN=
+EOF
 cd ../web_upload_html
 sls deploy --debug
 RESULT=$(sls deploy --debug)
@@ -95,4 +120,6 @@ then
     ErrLog "Web 上传页面部署失败。"
 fi
 
+HTML_WEB=$(sls info |grep url |head -n 1 |awk '{print $4}')
 NormalLog "云点播 Web 上传页面部署完成。"
+NormalLog "请点击:"$HTML_WEB",可直接访问"
