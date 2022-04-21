@@ -59,11 +59,6 @@ CheckCmd serverless -v
 NormalLog "开始部署云点播 Key 防盗链签名派发服务。"
 cd ./vod-server-demo/anti_leech_sign_scf
 
-if [ -z "$SUBAPPID" ]
-then
-    SUBAPPID="0"
-fi
-
 cat > ./config.json << EOF
 {
     "key" : "$ANTI_LEECH_KEY",

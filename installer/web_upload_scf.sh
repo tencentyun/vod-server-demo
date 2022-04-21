@@ -71,7 +71,7 @@ cat > ./ugc_upload_sign/config.json << EOF
     "sign_expire_time" : 600,
     "class_id" : 0,
     "otp" : 0,
-    "subappid" : "$APPID"
+    "subappid" : "$SUBAPPID"
 }
 EOF
 
