@@ -31,38 +31,29 @@ CheckCmd() {
     NormalLog $1" 安装成功。"
 }
 
-# 检查 apt 程序是否正在运行中（Ubuntu 启动后会自动运行更新程序）
-RESULT=$(ps -elf | grep apt | grep -v grep | wc -l)
-if [ $RESULT -ne 0 ]
-then
-    ErrLog "操作系统 apt 更新程序运行中，请稍后重试。"
-fi
+CheckNpm() {
+    echo "$* > /dev/null 2>&1" | bash
+    if [ $? -ne 0 ]
+    then
+        ErrLog $1" 安装失败。根据不同环境在此url进行安装：https://nodejs.org/zh-cn/download/"
+    fi
 
-export LC_ALL=C.UTF-8
-export LANG=C.UTF-8
+    NormalLog $1" 安装成功。"
+}
+
 cd ~
-
 ################ 获取 CVM 信息 ################
-#IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
+IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
 #REGION=$(curl -s http://metadata.tencentyun.com/latest/meta-data/placement/region)
 REGION="ap-guangzhou"
 
-################ 腾讯云 SCF 工具 ################
-NormalLog  "开始安装 pip3。"
-sudo apt-get update -qq > /dev/null
-sudo apt-get install python3-pip -qq > /dev/null
-CheckCmd pip3 --version
+################ 腾讯云 ServerLess 工具 ################
 
-NormalLog "开始安装腾讯云 SCF 工具。"
-sudo pip3 install scf -qq > /dev/null
-CheckCmd scf --version
-NormalLog "开始配置 scf。"
-scf configure set --region $REGION --appid $APPID --secret-id $SECRET_ID --secret-key $SECRET_KEY
-if [ $? -ne 0 ]
-then
-    ErrLog "scf 配置失败。"
-fi
-NormalLog "scf 配置完成。"
+NormalLog "开始检查npm。"
+CheckNpm npm --version
+NormalLog "开始安装 ServerLess。"
+npm install -g serverless
+CheckCmd serverless -v
 
 ################ SCF ################
 NormalLog "开始部署云点播 Key 防盗链签名派发服务。"
@@ -77,15 +68,26 @@ cat > ./config.json << EOF
 }
 EOF
 
-RESULT=$(scf deploy -t ./anti_leech_sign.yaml)
+cat > ./.env << EOF
+
+
+TENCENT_APP_ID=$APPID
+TENCENT_SECRET_ID=$SECRET_ID
+TENCENT_SECRET_KEY=$SECRET_KEY
+TENCENT_TOKEN=
+EOF
+
+sls deploy --debug
+RESULT=$(sls deploy --debug)
 if [ $? -ne 0 ]
 then
     echo "$RESULT" | grep ERROR
-    ErrLog "Key 防盗链签名派发服务部署失败。"
+    ErrLog "防盗链签名派发服务部署失败。"
 fi
 #APIGW_SERVICE_ID=$(echo "$RESULT" | grep "serviceId" | sed 's/serviceId.*\(service-.*\)/\1/')
-ANTI_LEECH_SIGN_SERVICE=$(echo "$RESULT" | grep "subDomain" | sed 's/.*\(http.*\)/\1/')
-NormalLog "云点播 Key 防盗链签名派发服务部署完成。"
+NormalLog "云点播 Key 防盗链签名派发服务部署完成"
+ANTI_LEECH_SIGN_SERVICE=$(sls info |grep url |head -n 1 |awk '{print $4}')
+
 
 # 测试服务
 for i in $(seq 1 10)
