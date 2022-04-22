@@ -41,7 +41,10 @@ CheckNpm() {
     NormalLog $1" 安装成功。"
 }
 
-cd ~
+NOW_PATH=$PWD
+echo $NOW_PATH
+cd $NOW_PATH
+unset NOW_PATH
 ################ 获取 CVM 信息 ################
 IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
 #REGION=$(curl -s http://metadata.tencentyun.com/latest/meta-data/placement/region)
