@@ -1,5 +1,5 @@
 #!/bin/bash
-# 参数配置
+# param config
 
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
@@ -12,12 +12,12 @@ NormalLog() {
 
 WarnLog() {
     echo -n `date +"[%Y-%m-%d %H:%M:%S]"`
-    echo -e "${YELLOW}警告${NC}："$1
+    echo -e "${YELLOW}Warning${NC}："$1
 }
 
 ErrLog() {
     echo -n `date +"[%Y-%m-%d %H:%M:%S]"`
-    echo -e "${RED}错误${NC}："$1
+    echo -e "${RED}Error${NC}："$1
     exit 1
 }
 
@@ -25,41 +25,41 @@ CheckCmd() {
     echo "$* > /dev/null 2>&1" | bash
     if [ $? -ne 0 ]
     then
-        ErrLog $1" 安装失败。"
+        ErrLog $1" is failed to installed."
     fi
 
-    NormalLog $1" 安装成功。"
+    NormalLog $1" is successfully installed."
 }
 
 CheckNpm() {
     echo "$* > /dev/null 2>&1" | bash
     if [ $? -ne 0 ]
     then
-        ErrLog $1" 安装失败。根据不同环境在此url进行安装：https://nodejs.org/zh-cn/download/"
+        ErrLog $1" is failed to installed.you should install at this url according to different environments: https://nodejs.org/zh-cn/download/"
     fi
 
-    NormalLog $1" 安装成功。"
+    NormalLog $1" is successfully installed."
 }
 
 NOW_PATH=$(dirname $0)
 cd $NOW_PATH
 cd ../..
 unset NOW_PATH
-################ 获取 CVM 信息 ################
+################ get CVM information ################
 IPV4=$(curl -s http://metadata.tencentyun.com/latest/meta-data/public-ipv4)
 #REGION=$(curl -s http://metadata.tencentyun.com/latest/meta-data/placement/region)
 REGION="ap-guangzhou"
 
-################ 腾讯云 ServerLess 工具 ################
+################ Cloud ServerLess Tool ################
 
-NormalLog "开始检查npm。"
+NormalLog "Start checking npm."
 CheckNpm npm --version
-NormalLog "开始安装 ServerLess。"
+NormalLog "Start installing ServerLess."
 npm install -g serverless-cloud-framework
 CheckCmd scf -v
 
 ################ SCF ################
-NormalLog "开始部署云点播事件通知接收服务。"
+NormalLog "Start deploying the event notification receipt service of VOD."
 cd ./vod-server-demo/callback_scf
 
 if [ -z "$SUBAPPID" ]
@@ -94,15 +94,15 @@ RESULT=$(scf deploy --debug)
 if [ $? -ne 0 ]
 then
     echo "$RESULT" | grep ERROR
-    ErrLog "事件通知接收服务部署失败。"
+    ErrLog "The event notification receipt service of VOD is failed."
 fi
 #APIGW_SERVICE_ID=$(echo "$RESULT" | grep "serviceId" | sed 's/serviceId.*\(service-.*\)/\1/')
-NormalLog "部署云点播事件通知接收服务完成。"
+NormalLog "The event notification receipt service of VOD is deployed."
 CALLBACK_SERVICE_CUT=$(scf info | grep -A 1 urls | tail -n 1 | awk '{print $3}')
 URL_Index=$(echo $CALLBACK_SERVICE_CUT | grep -bo http | sed 's/:.*$//')
 CALLBACK_SERVICE=${CALLBACK_SERVICE_CUT: $URL_Index}
 
-# 测试服务
+# test service
 for i in $(seq 1 10)
 do
     RESULT=$(curl -s -d '' $CALLBACK_SERVICE)
@@ -114,9 +114,10 @@ do
     fi
 done
 
+echo $i
 if [ $i -eq 10 ]
 then
-    WarnLog "事件通知接收服务测试不通过。"
+    WarnLog "The event notification receipt service of VOD failed the test."
 fi
 
-NormalLog "服务地址：$CALLBACK_SERVICE"
+NormalLog "Service address:$CALLBACK_SERVICE"
