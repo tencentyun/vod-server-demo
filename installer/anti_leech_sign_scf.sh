@@ -55,8 +55,8 @@ REGION="ap-guangzhou"
 NormalLog "开始检查npm。"
 CheckNpm npm --version
 NormalLog "开始安装 ServerLess。"
-npm install -g serverless
-CheckCmd serverless -v
+npm install -g serverless-cloud-framework
+CheckCmd scf -v
 
 ################ SCF ################
 NormalLog "开始部署云点播 Key 防盗链签名派发服务。"
@@ -80,8 +80,8 @@ TENCENT_SECRET_KEY=$SECRET_KEY
 TENCENT_TOKEN=
 EOF
 
-sls deploy --debug
-RESULT=$(sls deploy --debug)
+scf deploy --debug
+RESULT=$(scf deploy --debug)
 if [ $? -ne 0 ]
 then
     echo "$RESULT" | grep ERROR
@@ -89,7 +89,10 @@ then
 fi
 #APIGW_SERVICE_ID=$(echo "$RESULT" | grep "serviceId" | sed 's/serviceId.*\(service-.*\)/\1/')
 NormalLog "云点播 Key 防盗链签名派发服务部署完成"
-ANTI_LEECH_SIGN_SERVICE=$(sls info |grep url |head -n 1 |awk '{print $4}')
+
+ANTI_LEECH_SIGN_SERVICE_CUT=$(scf info | grep -A 1 urls | tail -n 1 | awk '{print $3}')
+URL_Index=$(echo $ANTI_LEECH_SIGN_SERVICE_CUT | grep -bo http | sed 's/:.*$//')
+ANTI_LEECH_SIGN_SERVICE=${ANTI_LEECH_SIGN_SERVICE_CUT: $URL_Index}
 
 
 # 测试服务

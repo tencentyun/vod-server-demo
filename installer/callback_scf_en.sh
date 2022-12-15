@@ -12,12 +12,12 @@ NormalLog() {
 
 WarnLog() {
     echo -n `date +"[%Y-%m-%d %H:%M:%S]"`
-    echo -e "${YELLOW}Warning${NC}:"$1
+    echo -e "${YELLOW}Warning${NC}："$1
 }
 
 ErrLog() {
     echo -n `date +"[%Y-%m-%d %H:%M:%S]"`
-    echo -e "${RED}Error${NC}:"$1
+    echo -e "${RED}Error${NC}："$1
     exit 1
 }
 
@@ -59,15 +59,24 @@ npm install -g serverless-cloud-framework
 CheckCmd scf -v
 
 ################ SCF ################
-NormalLog "Start deploying the VOD key hotlink protection signature distribution service."
-cd ./vod-server-demo/anti_leech_sign_scf
+NormalLog "Start deploying the event notification receipt service of VOD."
+cd ./vod-server-demo/callback_scf
+
+if [ -z "$SUBAPPID" ]
+then
+    SUBAPPID="0"
+fi
 
 cat > ./config.json << EOF
 {
-    "key" : "$ANTI_LEECH_KEY",
-    "t" : 1800,
-    "exper" : 0,
-    "rlimit" : 0
+    "secret_id": "$SECRET_ID",
+    "secret_key": "$SECRET_KEY",
+    "region": "$REGION",
+    "subappid": "$SUBAPPID",
+    "definitions": [
+        100010,
+        100020
+    ]
 }
 EOF
 
@@ -85,19 +94,18 @@ RESULT=$(scf deploy --debug)
 if [ $? -ne 0 ]
 then
     echo "$RESULT" | grep ERROR
-    ErrLog "The deployment of the VOD key hotlink protection signature distribution service is failed."
+    ErrLog "The event notification receipt service of VOD is failed."
 fi
 #APIGW_SERVICE_ID=$(echo "$RESULT" | grep "serviceId" | sed 's/serviceId.*\(service-.*\)/\1/')
-NormalLog "The deployment of the VOD key hotlink protection signature distribution service is completed."
-
-ANTI_LEECH_SIGN_SERVICE_CUT=$(scf info | grep -A 1 urls | tail -n 1 | awk '{print $3}')
-URL_Index=$(echo $ANTI_LEECH_SIGN_SERVICE_CUT | grep -bo http | sed 's/:.*$//')
-ANTI_LEECH_SIGN_SERVICE=${ANTI_LEECH_SIGN_SERVICE_CUT: $URL_Index}
+NormalLog "The event notification receipt service of VOD is deployed."
+CALLBACK_SERVICE_CUT=$(scf info | grep -A 1 urls | tail -n 1 | awk '{print $3}')
+URL_Index=$(echo $CALLBACK_SERVICE_CUT | grep -bo http | sed 's/:.*$//')
+CALLBACK_SERVICE=${CALLBACK_SERVICE_CUT: $URL_Index}
 
 # test service
 for i in $(seq 1 10)
 do
-    RESULT=$(curl -s -d '' $ANTI_LEECH_SIGN_SERVICE)
+    RESULT=$(curl -s -d '' $CALLBACK_SERVICE)
     if [ -z "$RESULT" ]
     then
         sleep 2
@@ -106,9 +114,10 @@ do
     fi
 done
 
+echo $i
 if [ $i -eq 10 ]
 then
-    WarnLog "the key hotlink protection signature distribution service failed the test."
+    WarnLog "The event notification receipt service of VOD failed the test."
 fi
 
-NormalLog "Service address: $ANTI_LEECH_SIGN_SERVICE"
+NormalLog "Service address:$CALLBACK_SERVICE"
