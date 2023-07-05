@@ -35,7 +35,7 @@ CheckNpm() {
     echo "$* > /dev/null 2>&1" | bash
     if [ $? -ne 0 ]
     then
-        ErrLog $1" is failed to installed.you should install at this url according to different environments: https://nodejs.org/zh-cn/download/"
+        ErrLog $1" is not installed.you should install at this url according to different environments: https://nodejs.org/zh-cn/download/"
     fi
 
     NormalLog $1" is successfully installed."

@@ -35,7 +35,7 @@ CheckNpm() {
     echo "$* > /dev/null 2>&1" | bash
     if [ $? -ne 0 ]
     then
-        ErrLog $1" 安装失败。根据不同环境在此url进行安装：https://nodejs.org/zh-cn/download/"
+        ErrLog $1" 未安装。根据不同环境在此url进行安装：https://nodejs.org/zh-cn/download/"
     fi
 
     NormalLog $1" 安装成功。"
